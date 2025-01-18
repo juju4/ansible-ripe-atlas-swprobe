@@ -1,0 +1,7 @@
+---
+
+# Debian 12/Ubuntu 24.04, libc6 (>= 2.36)
+riperepo_url: https://ftp.ripe.net/ripe/atlas/software-probe/debian/dists/bookworm/main/binary-amd64/ripe-atlas-repo_1.5-2_all.deb
+riperepo_url_hash: 'sha256:0bc6fa68360867c2742cfced3a2d04246a33a826c3d2fc3f6f4ecdaa53a35e08'
+deb_list:
+  - ripe-atlas-repo_1.5-2_all.deb

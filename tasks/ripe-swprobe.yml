@@ -1,0 +1,55 @@
+---
+# https://atlas.ripe.net/docs/howtos/software-probes.html
+
+- name: Ensure _install dir exists
+  ansible.builtin.file:
+    path: "/var/_install"
+    state: directory
+    mode: '0755'
+
+- name: Download RIPE repo package
+  ansible.builtin.get_url:
+    url: "{{ riperepo_url }}"
+    checksum: "{{ riperepo_url_hash }}"
+    dest: "/var/_install/{{ riperepo_url | basename }}"
+    mode: '0644'
+
+- name: Download libssl1.1 deb
+  ansible.builtin.get_url:
+    url: "{{ libssl11_deb }}"
+    checksum: "{{ libssl11_hash }}"
+    dest: "/var/_install/{{ libssl11_deb | basename }}"
+    mode: '0644'
+  when:
+    - ansible_distribution == 'Ubuntu' and ansible_distribution_major_version|int == 22
+
+- name: Install RIPE repo deb
+  ansible.builtin.package:
+    deb: "/var/_install/{{ item }}"
+    state: present
+  loop: "{{ deb_list }}"
+  notify:
+    - Update apt cache
+  when:
+    - ansible_os_family == 'Debian'
+
+- name: Flush handlers
+  ansible.builtin.meta: flush_handlers
+
+- name: Install RIPE software probe
+  ansible.builtin.package:
+    name: ripe-atlas-probe
+    state: present
+
+- name: Import systemd
+  ansible.builtin.import_tasks: systemd.yml
+
+- name: Enable/Start ripe-atlas
+  ansible.builtin.service:
+    name: ripe-atlas
+    state: started
+    enabled: yes
+
+- name: Last step
+  ansible.builtin.debug:
+    msg: "You will need to manually register probe on https://atlas.ripe.net/apply/swprobe/ with content of /etc/ripe-atlas/probe_key.pub"

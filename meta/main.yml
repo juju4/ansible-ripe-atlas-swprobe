@@ -1,0 +1,21 @@
+---
+galaxy_info:
+  role_name: ripe_atlas_swprobe
+  author: juju4
+  description: RIPE NCC Atlas Software Probe ansible role
+  license: BSD
+  min_ansible_version: '1.9'
+  platforms:
+    - name: EL
+      versions:
+        - all
+    - name: Ubuntu
+      versions:
+        - jammy
+        - focal
+        - bionic
+  galaxy_tags:
+    - network
+    - monitoring
+    - ripe
+dependencies: []

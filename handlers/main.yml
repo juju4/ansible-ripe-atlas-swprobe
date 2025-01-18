@@ -1,0 +1,14 @@
+---
+
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: yes
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: yes
+
+- name: Restart ripe-atlas
+  ansible.builtin.service:
+    name: ripe-atlas
+    state: restarted

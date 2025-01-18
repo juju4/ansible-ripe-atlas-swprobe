@@ -1,0 +1,145 @@
+---
+
+- name: Verify
+  hosts: "{{ playbook_hosts | default('all') }}"
+  vars:
+    test_dns:
+      - a.root-servers.net
+      - e.root-servers.net
+      - m.root-servers.net
+      - ping.ripe.net
+    test_pkg: ripe-atlas-probe
+    exec_file: /usr/libexec/ripe-atlas/measurement/busybox
+    cron_file: /var/spool/ripe-atlas/crons/main/root
+    pubkey_file: /etc/ripe-atlas/probe_key.pub
+    processes:
+      - { u: ripe-atlas-measurement, p: telnetd }
+      - { u: ripe-atlas-measurement, p: perd }
+      - { u: ripe-atlas-measurement, p: eperd }
+      - { u: ripe-atlas-measurement, p: eooqd }
+      - { u: ripe-atlas, p: ripe-atlas }
+      # not always active
+      # - { u: ripe-atlas, p: ssh }
+    ports:
+      # telnetd
+      - { h: 127.0.0.1, p: 2023 }
+      # ssh
+      # - { h: localhost, p: 8080 }
+    is_container: false
+  pre_tasks:
+    - name: RedHat | Ensure ps is present
+      ansible.builtin.package:
+        name: procps-ng
+        state: present
+      when: ansible_os_family == "RedHat" and ansible_distribution_major_version | int >= 8
+    - name: Debian | Ensure ps is present
+      ansible.builtin.package:
+        name: procps
+        state: present
+      when: ansible_os_family == "Debian"
+    - name: Debug | var ansible_virtualization_type
+      ansible.builtin.debug:
+        var: ansible_virtualization_type
+    - name: Set fact is_container
+      ansible.builtin.set_fact:
+        is_container: true
+      when: >
+        (ansible_virtualization_type is defined and
+          (ansible_virtualization_type == "docker"
+           or ansible_virtualization_type == "containerd"
+           or ansible_virtualization_type == "container"
+          )
+        )
+  tasks:
+    - name: Gather package facts
+      ansible.builtin.package_facts:
+        manager: auto
+    - name: Validate that needed packages are present
+      ansible.builtin.assert:
+        that: ansible_facts.packages[test_pkg]
+
+    - name: Check executable
+      ansible.builtin.stat:
+        path: "{{ exec_file }}"
+      register: bin1
+    - name: Validate busybox executable is present
+      ansible.builtin.assert:
+        that:
+          - bin1.stat.exists and bin1.stat.size != 0 and bin1.stat.mode == '4750'
+
+    - name: Check cron file
+      ansible.builtin.stat:
+        path: "{{ cron_file }}"
+      register: f1
+    - name: Validate cron file is present
+      ansible.builtin.assert:
+        that: f1.stat.exists and f1.stat.size != 0
+      # does not seem to exist before registration
+      failed_when: false
+
+    - name: Check probe ssh key
+      ansible.builtin.stat:
+        path: "{{ pubkey_file }}"
+      register: f2
+      become: yes
+    - name: Validate ssh pubkey file is present
+      ansible.builtin.assert:
+        that: f2.stat.exists and f2.stat.size != 0
+
+    - name: Ensure processes are running
+      ansible.builtin.command:
+        cmd: "pgrep -u {{ item.u }} {{ item.p }}"
+      register: ps
+      changed_when: false
+      failed_when: false
+      loop: "{{ processes }}"
+    - name: Debug | var ps
+      ansible.builtin.debug:
+        var: ps
+    - name: Validate ps output
+      ansible.builtin.assert:
+        that:
+          - item.stdout | length > 0
+      loop: "{{ ps.results }}"
+      when:
+        - not is_container|bool
+
+    - name: Check all processes
+      ansible.builtin.command: ps aux
+      changed_when: false
+      register: psa
+    - name: Debug | ps aux output
+      ansible.builtin.debug:
+        var: psa
+        verbosity: 1
+
+    - name: Ensure ports are listening
+      ansible.builtin.wait_for:
+        host: "{{ item.h }}"
+        port: "{{ item.p }}"
+        timeout: 10
+      with_items: "{{ ports }}"
+      when:
+        - not is_container|bool
+
+    - name: Test DNS resolution
+      ansible.builtin.command:
+        cmd: "host {{ item }}"
+      changed_when: false
+      register: dig_dns
+      loop: "{{ test_dns }}"
+
+    - name: Run httppost
+      ansible.builtin.command:
+        cmd: '/usr/libexec/ripe-atlas/measurement/httppost -A 9015 --set-time 2 --maxpostsize 9000000 --post-header /home/atlas/status/p_to_c_report_header --post-dir /home/atlas/data/out "http://127.0.0.1:8080/?PROBE_ID=1234&SESSION_ID=1234"'
+      changed_when: false
+      failed_when: false
+      register: httppost_out
+      become: yes
+      become_user: ripe-atlas-measurement
+    - name: Validate httppost output
+      ansible.builtin.assert:
+        that:
+          - "'OK' in httppost_out.stdout"
+      # depends on ssh port 8080
+      failed_when: false
