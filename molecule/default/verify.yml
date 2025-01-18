@@ -85,6 +85,8 @@
     - name: Validate ssh pubkey file is present
       ansible.builtin.assert:
         that: f2.stat.exists and f2.stat.size != 0
+      when:
+        - not is_container | bool
 
     - name: Ensure processes are running
       ansible.builtin.command:
