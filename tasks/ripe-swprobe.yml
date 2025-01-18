@@ -49,6 +49,8 @@
     name: ripe-atlas
     state: started
     enabled: yes
+  when:
+    - not is_container | bool
 
 - name: Last step
   ansible.builtin.debug:
