@@ -27,14 +27,18 @@
       # - { h: localhost, p: 8080 }
     is_container: false
   pre_tasks:
-    - name: RedHat | Ensure ps is present
+    - name: RedHat | Ensure ps and host are present
       ansible.builtin.package:
-        name: procps-ng
+        name:
+          - procps-ng
+          - bind-utils
         state: present
       when: ansible_os_family == "RedHat" and ansible_distribution_major_version | int >= 8
-    - name: Debian | Ensure ps is present
+    - name: Debian | Ensure ps and host present
       ansible.builtin.package:
-        name: procps
+        name:
+          - procps
+          - dnsutils
         state: present
       when: ansible_os_family == "Debian"
     - name: Debug | var ansible_virtualization_type
