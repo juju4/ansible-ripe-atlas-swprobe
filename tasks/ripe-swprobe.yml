@@ -23,6 +23,23 @@
   when:
     - ansible_distribution == 'Ubuntu' and ansible_distribution_major_version|int == 22
 
+- name: Debian 11
+  when:
+    - ansible_distribution == 'Debian' and ansible_distribution_major_version | int == 11
+  block:
+    - name: Debian 11 | Ensure apt-utils and systemd are present
+      ansible.builtin.package:
+        name:
+          - apt-utils
+          - systemd
+        state: present
+    - name: Debian 11 | Match ripe package expected path for systemd-sysusers
+      ansible.builtin.file:
+        src: /bin/systemd-sysusers
+        dest: /usr/bin/systemd-sysusers
+        state: link
+        mode: '0755'
+
 - name: Install RIPE repo deb
   ansible.builtin.package:
     deb: "/var/_install/{{ item }}"
