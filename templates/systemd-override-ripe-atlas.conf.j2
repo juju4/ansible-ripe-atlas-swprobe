@@ -3,8 +3,8 @@
 #
 # /etc/systemd/system/ripe-atlas.service.d/override.conf
 #
-# Exposure level 9.2 -> 6.3
-# register ok, ok for measurements (built-in graphs)
+# Exposure level 9.2 -> 6.3?
+# register ok, ok for measurements (built-in graphs)?
 # most measurement binaries call /usr/libexec/ripe-atlas/measurement/busybox
 # which is setuid ripe-atlas-measurements user.
 # Alternative: https://codeberg.org/mark22k/dn42-router/src/branch/main/roles/config-ripe-atlas/templates/ripe-atlas.service.j2
@@ -81,9 +81,16 @@ CapabilityBoundingSet=~CAP_SYS_PACCT
 CapabilityBoundingSet=~CAP_SYS_TTY_CONFIG
 CapabilityBoundingSet=~CAP_SYS_ADMIN
 
-# SystemCallFilter=@system-service
-# SystemCallFilter=~@clock @cpu-emulation @debug @module @mount @obsolete @privileged @raw-io @reboot @resources @swap
-# SystemCallArchitectures=native
+SystemCallFilter=@system-service @privileged
+SystemCallFilter=~@clock
+SystemCallFilter=~@cpu-emulation
+SystemCallFilter=~@debug
+SystemCallFilter=~@module
+SystemCallFilter=~@mount
+SystemCallFilter=~@raw-io
+SystemCallFilter=~@reboot
+SystemCallFilter=~@swap
+#SystemCallArchitectures=native
 # When system call is disallowed, return error code instead of killing process
 SystemCallErrorNumber=EPERM
 
