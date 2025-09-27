@@ -15,6 +15,10 @@
     mode: '0755'
     owner: ripe-atlas
 
+- name: Gather the package facts
+  ansible.builtin.package_facts:
+    manager: auto
+
 - name: Review ripe-atlas systemd options
   ansible.builtin.template:
     src: systemd-override-ripe-atlas.conf.j2
