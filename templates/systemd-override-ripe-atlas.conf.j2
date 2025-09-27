@@ -10,7 +10,7 @@
 # Alternative: https://codeberg.org/mark22k/dn42-router/src/branch/main/roles/config-ripe-atlas/templates/ripe-atlas.service.j2
 
 [Service]
-{% if (ansible_facts.packages.systemd | first).version is version('253', '>=') %}
+{% if ansible_facts.packages.systemd is defined and (ansible_facts.packages.systemd | first).version is version('253', '>=') %}
 # https://github.com/RIPE-NCC/ripe-atlas-software-probe/issues/96 systemd 253+
 LogFilterPatterns=~condmv
 LogFilterPatterns=~httppost
