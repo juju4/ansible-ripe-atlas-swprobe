@@ -53,6 +53,7 @@
     - Update apt cache
   when:
     - ansible_os_family == 'Debian'
+    - ansible_facts.packages['ripe-atlas-repo'] is not defined
 
 - name: Flush handlers
   ansible.builtin.meta: flush_handlers

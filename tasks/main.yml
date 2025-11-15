@@ -23,5 +23,9 @@
       )
     )
 
+- name: Gather the package facts
+  ansible.builtin.package_facts:
+    manager: auto
+
 - name: Import ripe-swprobe
   ansible.builtin.import_tasks: ripe-swprobe.yml
