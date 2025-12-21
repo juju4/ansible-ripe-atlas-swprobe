@@ -7,6 +7,11 @@ on:
   workflow_dispatch:
   schedule:  # run weekly, every Monday 01:00
     - cron: '0 1 * * 1'
+  merge_group:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
 
 permissions: {}
 
@@ -36,13 +41,22 @@ jobs:
       ANSIBLE_SUITE: ${{ matrix.suite }}
 
     steps:
-      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6
+      - name: Checkout code
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3  # v6.0.0
         with:
           path: ${{ env.ANSIBLE_ROLE }}
       - name: Set up Python
-        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6
+        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548  # v6.1.0
         with:
           python-version: '3.x'
+      - name: Cache
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830  # tag=v4.3.0
+        with:
+          path: |
+            /var/cache/apt/archives
+            /var/lib/apt
+            /var/_install
+          key: cache-ansible-ripe-${{ steps.get-date.outputs.date }}
       - name: Install dependencies
         run: |
           python3 -m pip install --upgrade pip
@@ -54,13 +68,21 @@ jobs:
           ansible --version
           cd $GITHUB_WORKSPACE/$ANSIBLE_ROLE
           [ -f molecule/$ANSIBLE_SUITE/requirements.yml ] && ansible-galaxy install -r molecule/$ANSIBLE_SUITE/requirements.yml
-          { echo '[defaults]'; echo 'callback_enabled = profile_tasks, timer'; echo 'roles_path = ../:/home/runner/.ansible/roles'; echo 'ansible_python_interpreter: /usr/bin/python3'; } >> ansible.cfg
+          { echo '[defaults]'; echo 'callbacks_enabled = profile_tasks, timer'; echo 'roles_path = ../:/home/runner/.ansible/roles'; echo 'ansible_python_interpreter: /usr/bin/python3'; } >> ansible.cfg
       - name: Environment
         run: |
           set -x
+          ansible --version
+          ansible-config dump --only-changed -t all
+          ansible-galaxy collection list || true
+          ansible-galaxy role list || true
           pwd
           env
           find . -ls
+      - name: Galaxy dependencies
+        run: |
+          cd $GITHUB_WORKSPACE/$ANSIBLE_ROLE && ansible-galaxy install --timeout 120 --verbose -r molecule/$ANSIBLE_SUITE/requirements.yml
+        continue-on-error: true
       - name: run test
         run: |
           cd $GITHUB_WORKSPACE/$ANSIBLE_ROLE && ansible-playbook -i localhost, --connection=local --become -vvv molecule/$ANSIBLE_SUITE/converge.yml ${ANSIBLE_EXTRA_VARS}
