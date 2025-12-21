@@ -26,7 +26,7 @@ jobs:
       matrix:
         include:
           - molecule_distro: 'almalinux:10-kitten'
-            experimental: false
+            experimental: true
             suite: default
           - molecule_distro: 'rockylinux:9'
             experimental: true
