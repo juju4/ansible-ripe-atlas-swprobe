@@ -1,0 +1,7 @@
+---
+
+# Debian 13
+riperepo_url: https://ftp.ripe.net/ripe/atlas/software-probe/debian/dists/trixie/main/binary-amd64/ripe-atlas-repo_1.5-5_all.deb
+riperepo_url_hash: 'sha256:45cddc7db55d6fcfd7ddf485a74859028db7541b03e7715dce5f36448eb02adf'
+deb_list:
+  - ripe-atlas-repo_1.5-5_all.deb
