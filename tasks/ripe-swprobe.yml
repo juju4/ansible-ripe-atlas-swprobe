@@ -21,11 +21,11 @@
     dest: "/var/_install/{{ libssl11_deb | basename }}"
     mode: '0644'
   when:
-    - ansible_distribution == 'Ubuntu' and ansible_distribution_major_version|int == 22
+    - ansible_facts['distribution'] == 'Ubuntu' and ansible_facts['distribution_major_version']|int == 22
 
 - name: Debian 11
   when:
-    - ansible_distribution == 'Debian' and ansible_distribution_major_version | int == 11
+    - ansible_facts['distribution'] == 'Debian' and ansible_facts['distribution_major_version'] | int == 11
   block:
     - name: Debian | Update apt cache
       ansible.builtin.apt:
@@ -52,7 +52,7 @@
   notify:
     - Update apt cache
   when:
-    - ansible_os_family == 'Debian'
+    - ansible_facts['os_family'] == 'Debian'
     - ansible_facts.packages['ripe-atlas-repo'] is not defined
 
 - name: Flush handlers
