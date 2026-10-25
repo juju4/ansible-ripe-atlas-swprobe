@@ -1,7 +1,7 @@
-[![Actions Status - Master](https://github.com/juju4/ansible-ripe-atlas-swprobe/workflows/AnsibleCI/badge.svg)](https://github.com/juju4/ansible-ripe-atlas-swprobe/actions?query=branch%3Amaster)
-[![Actions Status - Devel](https://github.com/juju4/ansible-ripe-atlas-swprobe/workflows/AnsibleCI/badge.svg?branch=devel)](https://github.com/juju4/ansible-ripe-atlas-swprobe/actions?query=branch%3Adevel)
-
 # RIPE NCC Atlas Software Probe ansible role
+
+[![Actions Status - Main](https://github.com/juju4/ansible-ripe-atlas-swprobe/workflows/AnsibleCI/badge.svg)](https://github.com/juju4/ansible-ripe-atlas-swprobe/actions?query=branch%3Amain)
+[![Actions Status - Devel](https://github.com/juju4/ansible-ripe-atlas-swprobe/workflows/AnsibleCI/badge.svg?branch=devel)](https://github.com/juju4/ansible-ripe-atlas-swprobe/actions?query=branch%3Adevel)
 
 Ansible role to setup [ripe-atlas-software-probe](https://github.com/RIPE-NCC/ripe-atlas-software-probe/) (docs: https://atlas.ripe.net/docs/howtos/software-probes.html)
 
